@@ -1,0 +1,171 @@
+﻿@using global::Shared.Models.Customer
+@using global::Shared.Models.ServiceAdvisor
+@using global::Shared.Models.Vehicles
+@inherits BaseComponent
+
+
+<MudStack Row="false" Class="mt-2">
+    <MudGrid>
+        <MudItem xs="12" sm="7">
+            <MudText>Vehicle</MudText>
+            <MudPaper Class="pa-4">
+                <MudStack Spacing="5">
+                    <MudTextField T="string" Label="License Plate" @bind-Value="Model.LicensePlate"
+                                  For="@(() => Model.LicensePlate)"/>
+                    <MudTextField T="string" Label="Chassis / Vin" @bind-Value="Model.ChassinVin"
+                                  For="@(() => Model.LicensePlate)"/>
+                    <MudStack Row="true" Spacing="5">
+                        <MudSelect T="int" Value="BrandId" ValueChanged="BrandChanged" Placeholder="Please Select"
+                                   Label="Brand">
+                            @if (Brands is not null)
+                            {
+                                foreach (var item in Brands)
+                                {
+                                    <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+                                }
+                            }
+                        </MudSelect>
+                        @if (BrandId > 0 && BrandModels is not null)
+                        {
+                            <MudSelect T="int" Value="BrandModelId" ValueChanged="BrandModelChanged"
+                                       Placeholder="Please Select"
+                                       Label="Model">
+                                @foreach (var item in BrandModels)
+                                {
+                                    <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        }
+                        @if (BrandModelId > 0 && BrandModelVariants is not null)
+                        {
+                            <MudSelect T="int" Value="@(BrandModelVariantId.HasValue ? BrandModelVariantId.Value : 0)"
+                                       ValueChanged="BrandVariantChanged" Placeholder="Please Select"
+                                       Label="Variant">
+                                @foreach (var item in BrandModelVariants)
+                                {
+                                    <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        }
+
+
+                    </MudStack>
+
+                    <MudNumericField T="decimal" @bind-Value="Model.AverageVehicleValuation"
+                                     Label="Average Vehicle Valuation" For="@(() => Model.AverageVehicleValuation)"/>
+                    <MudDatePicker @bind-Date="Model.NextServiceDate" Label="Next Service"
+                                   For="@(() => Model.NextServiceDate)"/>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="5">
+            <MudText>Vehicle Document</MudText>
+            <MudPaper Class="pa-4">
+                <MudStack Spacing="5">
+                    <MudDatePicker @bind-Date="Model.RegistrationExpiryDate" Label="Registration Expiry Date"
+                                   For="@(() => Model.RegistrationExpiryDate)"/>
+                    <FileUpload Name="Vehicle Registration" GetMediaUrl="(x) => Model.RegistrationFile = x"
+                                ExistingMediaUrl="@Model.RegistrationFile"/>
+                </MudStack>
+            </MudPaper>
+            <MudStack Row="true" Class="mt-2">
+                <MudText>Service Advisor</MudText>
+            </MudStack>
+            <MudPaper Class="pa-4">
+                <MudStack Row="true">
+                    @if (ServiceAdvisors is not null)
+                    {
+                        <MudSelect T="int" @bind-Value="Model.ServiceAdvisorId" Placeholder="Please Select"
+                                   For="@(() => Model.ServiceAdvisorId)">
+                            @foreach (var item in ServiceAdvisors)
+                            {
+                                <MudSelectItem Value="@item.Id">@($"{item.Name} - {item.Address}")</MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+                </MudStack>
+            </MudPaper>
+
+        </MudItem>
+    </MudGrid>
+</MudStack>
+
+@code {
+    [Parameter] public CreateCustomerVehicle Model { get; set; } = null!;
+
+    [Parameter] public IEnumerable<GetServiceAdvisorResponseModel>? ServiceAdvisors { get; set; }
+
+    private IEnumerable<GetBrandResponseModel>? Brands { get; set; }
+    private IEnumerable<GetBrandModelResponseModel>? BrandModels { get; set; }
+    private IEnumerable<GetBrandModelVariantResponseModel>? BrandModelVariants { get; set; }
+
+    private int BrandId { get; set; }
+    private int BrandModelId { get; set; }
+    private int? BrandModelVariantId { get; set; }
+    
+    [Parameter] public int Brand { get; set; }
+    [Parameter] public int BrandModel { get; set; }
+    [Parameter] public int? BrandModelVariant { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Brands = await ExecuteHttpService<IEnumerable<GetBrandResponseModel>>(async x => await x.GetAsync(url => url.Vehicle.GetBrands));
+
+        if (Brand > 0)
+        {
+            BrandId = Brand;
+            await BrandChanged(Brand);
+        }
+
+        if (BrandModel > 0)
+        {
+            BrandModelId = BrandModel;
+            await BrandModelChanged(BrandModel);
+        }
+
+        if (BrandModelVariant.HasValue)
+        {
+            BrandModelVariantId = BrandModelVariant;
+            await BrandVariantChanged(BrandModelVariant.Value);
+        }
+    }
+
+
+    private async Task BrandChanged(int obj)
+    {
+        BrandId = obj;
+        BrandModelId = 0;
+        BrandModelVariantId = 0;
+        Model.VehicleId = 0;
+        BrandModels = await ExecuteHttpService<IEnumerable<GetBrandModelResponseModel>>(async x => await x.GetAsync(url => url.Vehicle.GetBrandModels(obj)));
+        StateHasChanged();
+    }
+
+    private async Task BrandModelChanged(int obj)
+    {
+        BrandModelId = obj;
+        BrandModelVariantId = 0;
+        Model.VehicleId = 0;
+        BrandModelVariants = await ExecuteHttpService<IEnumerable<GetBrandModelVariantResponseModel>>(async x => await x.GetAsync(url => url.Vehicle.GetBrandModelVariants(obj)));
+
+        if (BrandModelVariants.Any())
+            StateHasChanged();
+        else
+        {
+            await SetVehicleId();
+            BrandModelVariants = null;
+        }
+    }
+
+    private async Task BrandVariantChanged(int obj)
+    {
+        BrandModelVariantId = obj;
+        await SetVehicleId();
+    }
+
+    private async Task SetVehicleId()
+    {
+        Model.VehicleId = await ExecuteHttpService<int>(async x => await x.GetAsync(url => url.Vehicle.GetVehicleId(BrandId, BrandModelId, BrandModelVariantId)));
+    }
+
+}

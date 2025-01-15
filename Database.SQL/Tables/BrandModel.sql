@@ -1,0 +1,15 @@
+﻿CREATE TABLE [dbo].[BrandModel]
+(
+	[Id] INT NOT NULL  IDENTITY (1,1),
+	[CompanyId] INT NOT NULL,
+	[BrandId] INT  NOT NULL,
+	[Name] NVARCHAR (20) NOT NULL,
+	[MODIFIED_BY] UNIQUEIDENTIFIER NOT NULL, 
+	[ValidFrom] datetime2 GENERATED ALWAYS AS ROW START,
+	[ValidTo] datetime2 GENERATED ALWAYS AS ROW END,
+	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo),
+    CONSTRAINT [PK_BrandModel] PRIMARY KEY CLUSTERED ([Id] ASC), 
+    CONSTRAINT [FK_BrandModel_Brand] FOREIGN KEY ([BrandId]) REFERENCES [Brand]([Id]),
+	CONSTRAINT [FK_BrandModel_Company] FOREIGN KEY ([CompanyId]) REFERENCES [Company]([Id]), 
+)
+WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[BrandModelHistory]));

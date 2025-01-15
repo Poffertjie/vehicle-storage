@@ -1,0 +1,47 @@
+﻿@using AdminPortal.Components.Pages.StorageArrivalDashboardComponents.Tabs
+@using global::Shared.Models.CustomerVehicle
+@inherits BaseComponent
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" Spacing="5">
+            <MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Info">
+                <MudTabPanel Icon="@Icons.Material.Rounded.Garage" Text="Storage Checks">
+                    <StorageChecksTab Model="Model" />
+                </MudTabPanel>
+            </MudTabs>
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-4 mt-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="Validate">Check In</MudButton>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter] public int CustomerVehicleId { get; set; }
+    [Parameter] public int CustomerStorageContractId { get; set; }
+
+    private CustomerVehicleStorageCheckInRequestModel Model { get; set; } = new();
+    MudForm form;
+
+    protected override void OnInitialized()
+    {
+        Model.CustomerVehicleId = CustomerVehicleId;
+        Model.CustomerStorageContractId = CustomerStorageContractId;
+    }
+    
+    private async Task Validate()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.CustomerVehicle.CustomerVehicleStorageCheckIn, Model));
+
+            if (success)
+                ToastSuccess("Vehicle storage checked in.");
+        }
+        
+    }
+
+}

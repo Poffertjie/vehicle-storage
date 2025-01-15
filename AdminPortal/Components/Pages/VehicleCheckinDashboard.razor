@@ -1,0 +1,72 @@
+﻿@page "/vehicle-checkin"
+@using AdminPortal.Components.Pages.VehicleCheckinDashboardComponents
+@using global::Shared.Models.CustomerVehicle
+@inherits BaseComponent
+@attribute [Authorize(Roles = nameof(RolesEnum.Admin) + "," + nameof(RolesEnum.Vehiclecheckin))]
+<PageTitle>Vehicle Check-in</PageTitle>
+<MudDataGrid @ref="dataGrid" T="GetVehicleChecksResponseModel" Filterable="false" ServerData="ServerReload" Class="mt-2">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Vehicle Check-in</MudText>
+        <MudSpacer/>
+        <MudTextField ValueChanged="@(s => OnSearch(s))" T="string" Placeholder="Search" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
+        </MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Customer"/>
+        <PropertyColumn Property="x => x.Brand"/>
+        <PropertyColumn Property="x => x.Model"/>
+        <PropertyColumn Property="x => x.LicensePlate" Title="License Plate"/>
+        <PropertyColumn Property="x => x.ChassisVin" Title="Chassis / VIN"/>
+        <TemplateColumn CellClass="d-flex justify-end">
+            <CellTemplate>
+                <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Info" Size="Size.Large" OnClick="(x) => ShowStartInspectionDialogue(context.Item.CustomerVehicleId, context.Item.CustomerStorageContractId)">Start</MudButton>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="GetVehicleChecksResponseModel"/>
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    MudDataGrid<GetVehicleChecksResponseModel> dataGrid;
+    string searchString = "";
+
+    private IEnumerable<GetVehicleChecksResponseModel>? Data { get; set; }
+
+    private async Task<GridData<GetVehicleChecksResponseModel>> ServerReload(GridState<GetVehicleChecksResponseModel> state)
+    {
+        Data ??= await ExecuteHttpService<IEnumerable<GetVehicleChecksResponseModel>>(async x =>
+            await x.GetAsync(url => url.CustomerVehicle.GetVehiclesForCheckIn));
+
+        if (Data is not null)
+        {
+            var pagedData = Data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+            return new GridData<GetVehicleChecksResponseModel> {
+                TotalItems = Data.Count(),
+                Items = pagedData
+            };
+        }
+
+        return new GridData<GetVehicleChecksResponseModel>();
+    }
+
+    private Task OnSearch(string text)
+    {
+        searchString = text;
+        return dataGrid.ReloadServerData();
+    }
+
+    private Task ShowStartInspectionDialogue(int customerVehicleId, int customerStorageContractId)
+    {
+        var parameters = new DialogParameters<VehicleCheckinDialogue>
+        {
+            { x => x.CustomerVehicleId,customerVehicleId },
+            { x => x.CustomerStorageContractId,customerStorageContractId },
+        };
+        
+        var options = new DialogOptions { FullScreen = true, CloseOnEscapeKey = true, CloseButton = true, BackdropClick = false };
+        return DialogService.ShowAsync<VehicleCheckinDialogue>("", parameters, options);
+    }
+}

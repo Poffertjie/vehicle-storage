@@ -1,0 +1,63 @@
+﻿@using global::Shared.Models.CustomerVehicle
+@using global::Shared.Models.Storage
+@inherits BaseComponent
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" Spacing="5">
+            <MudTextField T="string" Label="Battery Charge Status" @bind-Value="Model.BatteryChargeStatus" Required="true" RequiredError="required" Lines="2"/>
+            <MudTextField T="string" Label="Tyre Check" @bind-Value="Model.TyreCheck" Required="true" RequiredError="required" Lines="2"/>
+            <MudTextField T="string" Label="Oil Check" @bind-Value="Model.OilCheck" Required="true" RequiredError="required" Lines="2"/>
+            <MudTextField T="string" Label="Water Check" @bind-Value="Model.WaterCheck" Required="true" RequiredError="required" Lines="2"/>
+            <MudStack Row="true" Class="mt-2">
+                <MudText>Storage Bay</MudText>
+            </MudStack>
+            @if (StorageBays is not null)
+            {
+                <MudSelect T="int" Label="Storage Bay" @bind-Value="Model.StorageBayId" Placeholder="Please Select" AdornmentIcon="@Icons.Material.Filled.Garage" AdornmentColor="Color.Info" For="@(() => Model.StorageBayId)">
+                    @foreach (var storage in StorageBays)
+                    {
+                        <MudSelectItem Value="@storage.Id">@storage.Number</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-4 mt-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="Validate">Save</MudButton>
+            </MudStack>
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Speedometer Image</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.SpeedometerImage = x" Name="Speedometer Image"/>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter] public GetVehicleDailyWeeklyChecksResponseModel DailyCheckRecord { get; set; }
+    MudForm form;
+    private CustomerVehicleDailyCheckRequestModel Model { get; set; } = new();
+    private IEnumerable<GetStorageBaysResponseModel>? StorageBays { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Model.Id = DailyCheckRecord.Id;
+        Model.CustomerStorageContractId = DailyCheckRecord.CustomerStorageContractId;
+        Model.StorageBayId = DailyCheckRecord.StorageBayId;
+        StorageBays = await ExecuteHttpService<IEnumerable<GetStorageBaysResponseModel>>(async x => await x.GetAsync(url => url.Storage.GetAvailableStorageBays));
+    }
+
+    private async Task Validate()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.CustomerVehicle.CustomerVehicleDailyCheck, Model));
+
+            if (success)
+                ToastSuccess("Daily check completed.");
+        }
+        
+    }
+
+}

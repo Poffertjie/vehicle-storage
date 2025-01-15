@@ -1,0 +1,8 @@
+CREATE TABLE [dbo].[Media]
+(
+    [Id] NVARCHAR (450) NOT NULL,
+    [Name] NVARCHAR (MAX) NOT NULL,
+    [ContentType] NVARCHAR(MAX) NOT NULL,
+    [File] NVARCHAR(MAX) NOT NULL,
+    CONSTRAINT [PK_Media_Id] PRIMARY KEY CLUSTERED ([Id] ASC)
+)

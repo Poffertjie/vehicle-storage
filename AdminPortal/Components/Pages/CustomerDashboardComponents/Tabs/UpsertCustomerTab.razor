@@ -1,0 +1,72 @@
+﻿@using global::Shared.Models.Customer
+@typeparam T where T : CreateAdditionalContactPerson, new()
+
+<MudStack Row="false" Class="mt-2">
+    <MudGrid>
+        <MudItem xs="12" sm="7">
+            <MudText>Customer</MudText>
+            <MudPaper Class="pa-4">
+                <MudStack Spacing="5">
+                    <MudTextField ReadOnly="ReadOnly" T="string" Label="Full name" @bind-Value="Model.FullName" For="@(() => Model.FullName)"/>
+                    <MudTextField ReadOnly="ReadOnly" T="string" Label="Email" @bind-Value="Model.Email" For="@(() => Model.Email)"/>
+                    <MudTextField ReadOnly="ReadOnly" T="string" Label="Identification Number" @bind-Value="Model.IdentificationNumber" For="@(() => Model.IdentificationNumber)"/>
+                    <MudTextField ReadOnly="ReadOnly" T="string" Label="Contact Number" @bind-Value="Model.ContactNumber" For="@(() => Model.ContactNumber)"/>
+                    <MudTextField ReadOnly="ReadOnly" T="string" Label="Address" Lines="5" @bind-Value="Model.Address" For="@(() => Model.Address)"/>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="5">
+            <MudText>Customer Identification Document</MudText>
+            <MudPaper Class="pa-4">
+                <MudStack Spacing="5">
+                    <FileUpload Name="Upload" GetMediaUrl="(x) => Model.IdentificationFile = x" ExistingMediaUrl="@Model.IdentificationFile"/>
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudStack>
+<MudStack Class="mt-2">
+    <MudText>Additional Contact Persons</MudText>
+    <MudStack Row="true" Wrap="Wrap.Wrap">
+        @foreach (var a in AdditionalContactPersons)
+        {
+            <MudPaper Class="pa-4">
+                <MudStack Spacing="5">
+                    <MudTextField T="string" Label="Full Name" @bind-Value="a.FullName" Required="true" RequiredError="Full Name required"/>
+                    <MudTextField T="string" Label="Identification Number" @bind-Value="a.IdentificationNumber" Required="true" RequiredError="Identification Number required"/>
+                    <MudTextField T="string" Label="Contact Number" @bind-Value="a.ContactNumber" Required="true" RequiredError="Contact Number required"/>
+                    <MudTextField T="string" Label="Relationship" @bind-Value="a.Relationship" Required="true" RequiredError="Relationship required"/>
+                    @if (!ReadOnly)
+                    {
+                        <MudIconButton OnClick="() => RemoveContactPerson(a)" Class="float-right" Icon="@Icons.Material.Rounded.RemoveCircle" Color="Color.Info" Size="Size.Small"/>
+                    }
+                </MudStack>
+            </MudPaper>
+        }
+        @if (!ReadOnly)
+        {
+            <MudIconButton OnClick="AddContactPerson" Icon="@Icons.Material.Rounded.AddCircle" Color="Color.Info" Size="Size.Large"/>
+        }
+      
+    </MudStack>
+</MudStack>
+
+
+@code {
+    [Parameter] public CreateCustomer Model { get; set; } = new();
+    [Parameter] public List<T> AdditionalContactPersons { get; set; } = new();
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private void RemoveContactPerson(T person)
+    {
+        AdditionalContactPersons.Remove(person);
+    }
+
+    private void AddContactPerson()
+    {
+        AdditionalContactPersons.Add(new T());
+    }
+
+  
+
+}

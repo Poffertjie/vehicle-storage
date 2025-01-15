@@ -1,0 +1,88 @@
+﻿@using global::Shared.Models.CustomerVehicle
+<MudStack Row="true" Class="mt-2" AlignItems="AlignItems.Center" Justify="Justify.Center">
+    <MudGrid>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Number Plate</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.NumberPlateImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Chassis Number</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.ChassisNumberImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Front</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.FrontImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Left Front</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.LeftFrontImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Left Fender/Wheel</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.LeftFenderWheelImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Left Door Image</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.LeftDoorsImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Left Rear Fender Wheel Image</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.LeftRearFenderWheelImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Rear Image</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.RearImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Right Rear Fender/Wheel</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.RightRearFenderWheelImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Right Doors</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.RightDoorsImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Right Fender Wheel</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.RightFenderWheelImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Right Front</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.RightFrontImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="3">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Warning lights / Kilometers</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.WarningLightsKilometers = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+    </MudGrid>
+</MudStack>
+
+
+@code {
+    [Parameter] public CustomerVehicleCheckInRequestModel Model { get; set; }
+}

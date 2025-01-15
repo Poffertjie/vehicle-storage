@@ -1,0 +1,85 @@
+﻿@using AdminPortal.Components.Pages.CustomerDashboardComponents.Tabs
+@using global::Shared.Models.Customer
+@using global::Shared.Models.Lookup
+@using global::Shared.Models.ServiceAdvisor
+@using global::Shared.Models.Storage
+@using global::Shared.Models.Vehicles
+@inherits BaseComponent
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" Spacing="5">
+            @if (CustomerId.HasValue == false)
+            {
+                <MudText Align="Align.Center" Typo="Typo.h5">Customer</MudText>
+                <UpsertCustomerTab ReadOnly="false" Model="Model.Customer" AdditionalContactPersons="Model.AdditionalContactPersons" T="CreateAdditionalContactPerson"/>
+            }
+            @if (CustomerVehicleId.HasValue == false)
+            {
+                <MudText Align="Align.Center" Typo="Typo.h5">Vehicle</MudText>
+                <UpsertCustomerVehicleTab Model="Model.CustomerVehicle" ServiceAdvisors="ServiceAdvisors" />
+            }
+            <MudText Align="Align.Center" Typo="Typo.h5">Contract</MudText>
+            <UpsertCustomerContractTab Model="Model.CustomerContract" PaymentOptions="PaymentOptions" StorageBays="StorageBays" StorageBayId="StorageBayId"/>
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-4 mt-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="Validate">Create</MudButton>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private CreateCustomerStorageContract Model { get; set; } 
+    private IEnumerable<GetServiceAdvisorResponseModel>? ServiceAdvisors { get; set; }
+    private IEnumerable<GetPaymentOptionsResponseModel>? PaymentOptions { get; set; }
+    private IEnumerable<GetStorageBaysResponseModel>? StorageBays { get; set; }
+    
+    MudForm form;
+    
+    [Parameter]
+    public int? CustomerId { get; set; }
+    
+    [Parameter]
+    public int? CustomerVehicleId { get; set; }
+    
+    [Parameter]
+    public int? StorageBayId { get; set; }
+    
+    [Parameter]
+    public int? StorageBayNumber { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        Model = new CreateCustomerStorageContract(CustomerId, CustomerVehicleId);
+        ServiceAdvisors = await ExecuteHttpService<IEnumerable<GetServiceAdvisorResponseModel>>(async x => await x.GetAsync(url => url.ServiceAdvisor.GetServiceAdvisors));
+            
+        PaymentOptions = await ExecuteHttpService<IEnumerable<GetPaymentOptionsResponseModel>>(async x => await x.GetAsync(url => url.Lookup.GetPaymentOptions));
+            
+        var storageBays = await ExecuteHttpService<IEnumerable<GetStorageBaysResponseModel>>(async x => await x.GetAsync(url => url.Storage.GetAvailableStorageBays));
+
+        if (StorageBayId.HasValue && StorageBayNumber.HasValue)
+            storageBays = storageBays.Append(new GetStorageBaysResponseModel()
+            {
+                Id = StorageBayId.Value,
+                Number = StorageBayNumber.Value
+            });
+
+        StorageBays = storageBays;
+    }
+    
+    private async Task Validate()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.Customer.CreateCustomerContract, Model));
+
+            if (success)
+                ToastSuccess("Customer contract created");
+        }
+        
+    }
+
+}

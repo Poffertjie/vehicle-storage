@@ -1,0 +1,28 @@
+﻿CREATE TABLE [dbo].[CustomerVehicle]
+(
+	[Id] INT NOT NULL IDENTITY(1,1),
+    [CustomerId] INT NOT NULL,
+    [CompanyId] INT NOT NULL,
+    [StatusId] INT NOT NULL,
+	[VehicleId] INT NOT NULL,
+    [LicensePlate] NVARCHAR(50) NOT NULL,
+    [ChassisVin] NVARCHAR(50) NOT NULL,
+	[RegistrationExpiryDate] DATETIME NOT NULL,
+    [AverageVehicleValuation] DECIMAL(18, 2) NOT NULL,
+    [NextService] DATETIME NOT NULL,
+    [ServiceAdvisorId] INT NOT NULL,
+    [VehicleRegistrationFile] NVARCHAR(MAX) NOT NULL, 
+    [StartDate] DATETIME NOT NULL,
+	[EndDate] DATETIME NOT NULL,
+    [MODIFIED_BY] UNIQUEIDENTIFIER NOT NULL,
+	[ValidFrom] datetime2 GENERATED ALWAYS AS ROW START,
+	[ValidTo] datetime2 GENERATED ALWAYS AS ROW END,
+	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo),
+    CONSTRAINT [PK_CustomerVehicle_Id] PRIMARY KEY CLUSTERED ([Id] ASC), 
+    CONSTRAINT [FK_CustomerVehicle_Vehicle] FOREIGN KEY ([VehicleId]) REFERENCES [Vehicle]([Id]), 
+    CONSTRAINT [FK_CustomerVehicle_ServiceAdvisor] FOREIGN KEY ([ServiceAdvisorId]) REFERENCES [ServiceAdvisor]([Id]),
+    CONSTRAINT [FK_CustomerVehicle_Company] FOREIGN KEY ([CompanyId]) REFERENCES [Company]([Id]),
+    CONSTRAINT [FK_CustomerVehicle_Customer] FOREIGN KEY ([CustomerId]) REFERENCES [Customer]([Id]),
+    CONSTRAINT [FK_CustomerVehicle_Status] FOREIGN KEY ([StatusId]) REFERENCES [CustomerVehicleStatus]([Id]),
+)
+WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[CustomerVehicleHistory]));

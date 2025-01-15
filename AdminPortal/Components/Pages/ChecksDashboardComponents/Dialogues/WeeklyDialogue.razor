@@ -1,0 +1,80 @@
+﻿@using global::Shared.Models.CustomerVehicle
+@inherits BaseComponent
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" Spacing="5">
+            <MudStack Row="true" Class="mt-2" AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudGrid>
+                    <MudItem xs="6" sm="6" md="4">
+                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                            <MudText Align="Align.Center">Battery Charge Status</MudText>
+                            <FileUpload Name="Upload" GetMediaUrl="(x) => Model.BatteryChargeStatus = x" ExistingMediaUrl="@Model.BatteryChargeStatus"/>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="6" md="4">
+                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                            <MudText Align="Align.Center">Battery Status</MudText>
+                            <FileUpload Name="Upload" GetMediaUrl="(x) => Model.BatteryStatus = x" ExistingMediaUrl="@Model.BatteryStatus"/>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="6" md="4">
+                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                            <MudText Align="Align.Center">Tire Pressure Front Right</MudText>
+                            <FileUpload Name="Upload" GetMediaUrl="(x) => Model.TirePressureFrontRight = x" ExistingMediaUrl="@Model.TirePressureFrontRight"/>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="6" md="4">
+                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                            <MudText Align="Align.Center">Tire Pressure Rear Right</MudText>
+                            <FileUpload Name="Upload" GetMediaUrl="(x) => Model.TirePressureRearRight = x" ExistingMediaUrl="@Model.TirePressureRearRight"/>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="6" md="4">
+                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                            <MudText Align="Align.Center">Tire Pressure Rear Left</MudText>
+                            <FileUpload Name="Upload" GetMediaUrl="(x) => Model.TirePressureRearLeft = x" ExistingMediaUrl="@Model.TirePressureRearLeft"/>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6" sm="6" md="4">
+                        <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                            <MudText Align="Align.Center">Tire Pressure Front Left</MudText>
+                            <FileUpload Name="Upload" GetMediaUrl="(x) => Model.TirePressureFrontLeft = x" ExistingMediaUrl="@Model.TirePressureFrontLeft"/>
+                        </MudStack>
+                    </MudItem>
+
+                </MudGrid>
+            </MudStack>
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-4 mt-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="Validate">Save</MudButton>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    MudForm form;
+    private CustomerVehicleWeeklyCheckRequestModel Model { get; set; } = new();
+
+
+    protected override void OnInitialized()
+    {
+        Model.Id = Id;
+    }
+
+    private async Task Validate()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.CustomerVehicle.CustomerVehicleWeeklyCheck, Model));
+
+            if (success)
+                ToastSuccess("Weekly check completed.");
+        }
+        
+    }
+
+}

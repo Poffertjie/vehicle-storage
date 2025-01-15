@@ -1,0 +1,61 @@
+﻿@using global::Shared.Models.CustomerVehicle
+@using global::Shared.Models.Lookup
+@inherits BaseComponent
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" Spacing="5">
+            <MudDatePicker @bind-Date="Model.CheckOutDate" Label="Checkout Date" For="@(() => Model.CheckOutDate)"/>
+            <MudDatePicker @bind-Date="Model.PlannedCheckInDate" Label="Planned Checkin Date" For="@(() => Model.PlannedCheckInDate)"/>
+            <MudStack Row="true" Class="mt-2">
+                <MudText>Delivery Method</MudText>
+            </MudStack>
+            <MudStack Row="true">
+                @if (DeliveryMethods is not null)
+                {
+                    <MudSelect T="int" @bind-Value="Model.DeliveryMethodId" Placeholder="Please Select" For="@(() => Model.DeliveryMethodId)">
+                        @foreach (var item in DeliveryMethods)
+                        {
+                            <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                }
+            </MudStack>
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-4 mt-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="Validate">Start Checkout</MudButton>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+
+    [Parameter] public int CustomerVehicleId { get; set; }
+    [Parameter] public int CustomerStorageContractIdId { get; set; }
+
+    private StartCustomerVehicleCheckOutRequestModel Model { get; set; } = new();
+    MudForm form;
+    
+    private IEnumerable<GetDeliveryMethodsResponseModel>? DeliveryMethods { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Model.CustomerVehicleId = CustomerVehicleId;
+        Model.CustomerStorageContractId = CustomerStorageContractIdId;
+        DeliveryMethods = await ExecuteHttpService<IEnumerable<GetDeliveryMethodsResponseModel>>(async x => await x.GetAsync(url => url.Lookup.GetDeliveryMethods));
+    }
+
+    private async Task Validate()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.CustomerVehicle.StartCustomerVehicleCheckOut, Model));
+
+            if (success)
+                ToastSuccess("Customer vehicle checkout started.");
+        }
+    }
+
+}

@@ -1,0 +1,129 @@
+@using global::Shared.Models.Media
+@inherits BaseComponent
+@inject IJSRuntime JsRuntime
+
+@if (_status == UploadStatus.Uploading)
+{
+    <MudProgressLinear Color="Color.Info" Indeterminate="true" Class="my-7"/>
+}
+
+@if (_status == UploadStatus.Empty)
+{
+    <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+        <ActivatorContent>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Info">
+                @Name
+            </MudButton>
+        </ActivatorContent>
+
+        <SelectedTemplate>
+            @if (context != null)
+            {
+                <MudText>@context.Name</MudText>
+            }
+        </SelectedTemplate>
+    </MudFileUpload>
+}
+
+@if (_status == UploadStatus.Uploaded)
+{
+    <MudStack Spacing="5" Row="@(!IsImage)">
+        @if (IsImage)
+        {
+            <MudImage Src="@_file" Height="150" Width="300" Class="mt-2"/>
+        }
+        else
+        {
+            <p>@_name</p>
+        }
+        <MudButton Variant="Variant.Filled"
+                   OnClick="Delete"
+                   Color="Color.Info">
+            Delete
+        </MudButton>
+    </MudStack>
+}
+
+<MudStack Row="true" Spacing="5">
+    @if (!string.IsNullOrWhiteSpace(ExistingMediaUrl))
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="ViewFile">View</MudButton>
+    }
+</MudStack>
+
+
+@code {
+    [Parameter] public string Name { get; set; }
+
+    [Parameter] public EventCallback<string> GetMediaUrl { get; set; }
+
+    [Parameter] public bool IsImage { get; set; }
+
+    [Parameter] public string ExistingMediaUrl { get; set; }
+
+    private UploadStatus _status = UploadStatus.Empty;
+
+    private string _mediaUrl = string.Empty;
+    private string _name = string.Empty;
+    private string _file = string.Empty;
+
+    private async void UploadFiles(IBrowserFile? file)
+    {
+        if (file is not null)
+        {
+            _status = UploadStatus.Uploading;
+            _file = await FileHelper.GetBase64(file);
+            _mediaUrl = await ExecuteHttpService<string>(async x => await x.PostAsync(url => url.Media.CreateMedia, new CreateMediaRequestModel
+            {
+                File = _file,
+                Name = file.Name,
+                ContentType = file.ContentType
+            }));
+
+            if (!string.IsNullOrWhiteSpace(_mediaUrl))
+            {
+                _name = file.Name;
+                await GetMediaUrl.InvokeAsync(_mediaUrl);
+                ToastSuccess("file uploaded");
+                _status = UploadStatus.Uploaded;
+                StateHasChanged();
+            }
+            else
+            {
+                _status = UploadStatus.Empty;
+                _file = string.Empty;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task Delete()
+    {
+        var deleted = await ExecuteHttpService<bool>(async x => await x.GetAsync(url => url.Media.DeleteMedia(_mediaUrl)));
+
+        if (deleted)
+        {
+            _file = string.Empty;
+            _name = string.Empty;
+            _mediaUrl = string.Empty;
+            _status = UploadStatus.Empty;
+            ToastSuccess("file deleted");
+            StateHasChanged();
+        }
+    }
+
+    private async Task ViewFile()
+    {
+        var file = await ExecuteHttpService<string>(async x => await x.GetAsync(url => url.Media.GetMedia(ExistingMediaUrl)));
+        await JsRuntime.InvokeVoidAsync("OpenDocument", file);
+    }
+
+    public enum UploadStatus
+    {
+        Uploading,
+        Uploaded,
+        Empty
+    }
+
+}

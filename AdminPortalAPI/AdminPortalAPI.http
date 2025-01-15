@@ -1,0 +1,6 @@
+@AdminPortalAPI_HostAddress = http://localhost:5006
+
+GET {{AdminPortalAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

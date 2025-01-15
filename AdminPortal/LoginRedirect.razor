@@ -1,0 +1,21 @@
+@using Microsoft.AspNetCore.Authorization
+@inject NavigationManager NavigationManager
+@attribute [AllowAnonymous]
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            // var uri = NavigationManager.Uri.Replace(NavigationManager.BaseUri, "");
+            // NavigationManager.NavigateTo($"/login?returnUrl={uri}", forceLoad: true);
+            NavigationManager.NavigateTo($"/login", forceLoad: true);
+        }
+        catch
+        {
+            
+        }
+    }
+
+}

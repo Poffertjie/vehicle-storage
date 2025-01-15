@@ -1,0 +1,138 @@
+﻿@using AdminPortal.Components.Pages.CustomerDashboardComponents.Dialogues
+@using global::Shared.Enums
+@using global::Shared.Models.Customer
+@using global::Shared.Models.Lookup
+@using global::Shared.Models.ServiceAdvisor
+@using global::Shared.Models.Storage
+@using global::Shared.Models.Vehicles
+@inherits BaseComponent
+
+<MudDataGrid @ref="dataGrid" T="GetCustomerVehicleGridResponse" Filterable="false" ServerData="ServerReload" Class="mt-2">
+    <ToolBarContent>
+        <MudSpacer/>
+        <MudTextField ValueChanged="@(s => OnSearch(s))" T="string" Placeholder="Search" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
+        </MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.LicensePlate" Title="License Plate"/>
+        <PropertyColumn Property="x => x.ChassisVin" Title="Chassis / Vin"/>
+        <PropertyColumn Property="x => x.Vehicle" Title="Vehicle"/>
+        <PropertyColumn Property="x => x.VehicleValuation" Title="Vehicle Valuation"/>
+        <PropertyColumn Property="x => x.NextService" Title="Next Service" Format="dd/MM/yyyy"/>
+        <PropertyColumn Property="x => x.ServiceAdvisor" Title="Service Advisor"/>
+        <PropertyColumn Property="x => x.RegistrationExpiryDate" Title="Registration Expiry Date" Format="dd/MM/yyyy"/>
+        <PropertyColumn Property="x => x.Status" Title="Status"/>
+        <TemplateColumn>
+            <CellTemplate>
+                <MudMenu Icon="@Icons.Material.Filled.Settings"
+                         Color="Color.Primary"
+                         AriaLabel="Actions">
+                    <MudMenuItem Disabled="@(context.Item.StatusId != (int)VehicleStatusEnum.Storage)" OnClick="() => OpenCheckoutVehicle(context.Item.CustomerVehicleId, context.Item.CustomerStorageContractId)">
+                        Checkout
+                    </MudMenuItem>
+                    <MudMenuItem Disabled="@(context.Item.StatusId != (int)VehicleStatusEnum.CheckedOut)" OnClick="() => StartCheckIn(context.Item.CustomerVehicleId, context.Item.CustomerStorageContractId)">
+                        CheckIn
+                    </MudMenuItem>
+                    <MudMenuItem OnClick="() => OpenUpsertVehicle(context.Item.CustomerVehicleId)">
+                        Edit
+                    </MudMenuItem>
+                    <MudMenuItem OnClick="() => OpenCustomerContract(context.Item.CustomerStorageContractId)">
+                        View Contract
+                    </MudMenuItem>
+                    <MudMenuItem OnClick="() => OpenNewContractDialogue(context.Item.CustomerVehicleId, context.Item.StorageBayId, context.Item.StorageBayNumber)">
+                        Add New Contract
+                    </MudMenuItem>
+                </MudMenu>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="GetCustomerVehicleGridResponse"/>
+    </PagerContent>
+</MudDataGrid>
+
+
+@code {
+    
+    [Parameter] public int CustomerId { get; set; }
+    [Parameter] public IEnumerable<GetCustomerVehicleGridResponse> CustomerVehicles { get; set; }
+
+
+    MudDataGrid<GetCustomerVehicleGridResponse> dataGrid;
+    string searchString = "";
+
+    private async Task<GridData<GetCustomerVehicleGridResponse>> ServerReload(GridState<GetCustomerVehicleGridResponse> state)
+    {
+        var data = CustomerVehicles;
+
+        return new GridData<GetCustomerVehicleGridResponse>
+        {
+            TotalItems = data.Count(),
+            Items = data.Where(x => x.ServiceAdvisor.Contains(searchString))
+        };
+    }
+
+    private Task OnSearch(string text)
+    {
+        searchString = text;
+        return dataGrid.ReloadServerData();
+    }
+
+    private Task OpenUpsertVehicle(int customerVehicleId)
+    {
+        var parameters = new DialogParameters<UpdateCustomerVehicleDialogue>
+        {
+            { x => x.CustomerVehicleId, customerVehicleId },
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large, FullWidth = true, Position = DialogPosition.TopCenter, CloseButton = true, BackdropClick = false };
+        return DialogService.ShowAsync<UpdateCustomerVehicleDialogue>("Edit Vehicle", parameters, options);
+    }
+
+    private async Task StartCheckIn(int customerVehicleId, int customerStorageContractId)
+    {
+        var success = await ExecuteHttpService<bool>(async x => await x.GetAsync(url => url.CustomerVehicle.StartCustomerVehicleCheckInAfterCheckedOutState(customerVehicleId, customerStorageContractId)));
+        
+        if(success)
+            ToastSuccess("Check in started");
+    }
+
+    private Task OpenCheckoutVehicle(int customerVehicleId, int customerStorageContractId)
+    {
+        var parameters = new DialogParameters<CheckoutVehicleDialogue>
+        {
+            { x => x.CustomerVehicleId, customerVehicleId },
+            { x => x.CustomerStorageContractIdId, customerStorageContractId },
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true, Position = DialogPosition.TopCenter, CloseButton = true, BackdropClick = false };
+        return DialogService.ShowAsync<CheckoutVehicleDialogue>("Checkout Vehicle", parameters, options);
+    }
+    
+    private Task OpenCustomerContract(int customerContractId)
+    {
+        var parameters = new DialogParameters<UpdateCustomerContractDialogue>
+        {
+            { x => x.CustomerContractId,customerContractId },
+        };
+        
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, Position = DialogPosition.TopCenter, CloseButton = true, BackdropClick = false};
+        return DialogService.ShowAsync<UpdateCustomerContractDialogue>("View Contract", parameters,options);
+    }
+    
+    private Task OpenNewContractDialogue(int customerVehicleId, int storagebayId, int storagebayNumber)
+    {
+        var parameters = new DialogParameters<AddCustomerDialogue>
+        {
+            { x => x.CustomerId,CustomerId },
+            { x => x.CustomerVehicleId,customerVehicleId },
+            { x => x.StorageBayId,storagebayId },
+            { x => x.StorageBayNumber,storagebayNumber },
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraLarge, FullWidth = true, Position = DialogPosition.TopCenter, CloseButton = true, BackdropClick = false };
+        return DialogService.ShowAsync<AddCustomerDialogue>("", parameters,options);
+    }
+
+}

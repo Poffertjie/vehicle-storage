@@ -1,0 +1,72 @@
+@using global::Shared.Models.ServiceAdvisor
+@inherits BaseComponent
+
+@if (Model is not null)
+{
+    <MudForm @ref="form" Spacing="5">
+        <MudStack Row="false" Class="mt-2">
+            <MudPaper Class="pa-4">
+                <MudGrid>
+                    <MudItem xs="12" sm="12">
+                        <MudStack Spacing="5">
+                            <MudTextField Label="Name"
+                                          @bind-Value="Model.Name" For="@(() => Model.Name)"/>
+                            <MudTextField Label="Contact Number"
+                                          @bind-Value="Model.ContactNumber" For="@(() => Model.ContactNumber)"/>
+                            <MudTextField Label="Address"
+                                          @bind-Value="Model.Address" For="@(() => Model.Address)"/>
+
+                            <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-4 mt-4">
+                                <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="Validate">Save</MudButton>
+                            </MudStack>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudStack>
+
+    </MudForm>
+}
+
+
+@code {
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; }
+    [Parameter] public UpdateServiceAdvisorRequestModel? Model { get; set; }
+
+    MudForm form;
+
+    protected override void OnInitialized()
+    {
+        Model ??= new();
+    }
+
+    private async Task Validate()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            if (Model.Id <= 0)
+            {
+                var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.ServiceAdvisor.CreateServiceAdvisor, Model));
+
+                if (success)
+                {
+                    ToastSuccess("Service advisor created");
+                    MudDialog.Close(DialogResult.Ok(true));
+                }
+            }
+            else
+            {
+                var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.ServiceAdvisor.UpdateServiceAdvisor, Model));
+
+                if (success)
+                {
+                    ToastSuccess("Service advisor updated");
+                    MudDialog.Close(DialogResult.Ok(true));
+                }
+            }
+        }
+    }
+
+}

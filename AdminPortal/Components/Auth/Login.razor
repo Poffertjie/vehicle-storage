@@ -1,0 +1,70 @@
+@page "/login"
+@using AdminPortal.Components.Layout
+@using global::Shared.Models.Auth
+@using LoginRequestModel = AdminPortal.Models.LoginRequestModel
+@attribute [AllowAnonymous]
+@layout EmptyLayout
+@inherits BaseComponent
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<AuthorizeView Context="authContext">
+    <NotAuthorized>
+        <MudContainer Class="mt-16">
+            @* <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">[Logo]</MudText> *@
+            @* <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">[Business Name]</MudText> *@
+            <MudGrid Class="mt-8">
+                <MudItem xs="0" sm="0" md="4">
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="25" Class="rounded-lg pb-4">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h5" Align="Align.Center">Login</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <EditForm Model="@_model" OnValidSubmit="OnValidSubmit">
+                            <DataAnnotationsValidator/>
+                            <MudCardContent>
+                                <MudTextField Label="Email" Class="mt-3"
+                                              @bind-Value="_model.Email" For="@(() => _model.Email)"/>
+                                <MudTextField Label="Password" Class="mt-3"
+                                              @bind-Value="_model.Password" For="@(() => _model.Password)" InputType="InputType.Password"/>
+                            </MudCardContent>
+                            <MudCardActions Class="d-flex justify-center">
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Info" Size="Size.Large" Style="width:50%;">Login</MudButton>
+                            </MudCardActions>
+                        </EditForm>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </NotAuthorized>
+    <Authorized>
+        @{
+            NavigationManager.NavigateTo(ReturnUrl ?? "/", false);
+        }
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+    
+    private readonly LoginRequestModel _model = new LoginRequestModel()
+    {
+        Email = "admin@topaz.com",
+        Password = "Admin@123"
+    };
+
+    private async Task OnValidSubmit(EditContext context)
+    {
+        var response = await ExecuteHttpService<LoginResponseModel>(async x => await x.PostAsync(url => url.Authentication.Login, _model));
+        if (!string.IsNullOrWhiteSpace(response.Token))
+        {
+            await ((CustomAuthStateProvider)AuthenticationStateProvider)
+                .SetTokenAsync(response.Token);
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+}

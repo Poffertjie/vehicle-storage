@@ -1,0 +1,48 @@
+@using AdminPortal.Components.Pages.CustomerDashboardComponents.Tabs
+@using global::Shared.Models.Customer
+@using global::Shared.Models.Lookup
+@using global::Shared.Models.Storage
+@inherits BaseComponent
+
+<MudForm @ref="form" Spacing="5">
+    @if (Model is not null)
+    {
+        <UpsertCustomerContractTab Model="Model" PaymentOptions="PaymentOptions" StorageBays="StorageBays"/>
+        <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="Validate">Update</MudButton>
+        </MudStack>
+    }
+</MudForm>
+
+@code {
+    [Parameter] public int CustomerContractId { get; set; }
+    
+    private UpdateCustomerContract? Model { get; set; }
+    private IEnumerable<GetPaymentOptionsResponseModel>? PaymentOptions { get; set; }
+    private IEnumerable<GetStorageBaysResponseModel>? StorageBays { get; set; }
+    MudForm form;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Model = await ExecuteHttpService<UpdateCustomerContract>(async x => await x.GetAsync(url => url.CustomerVehicle.GetCustomerContractForUpdate(CustomerContractId)));
+        
+        PaymentOptions = await ExecuteHttpService<IEnumerable<GetPaymentOptionsResponseModel>>(async x => await x.GetAsync(url => url.Lookup.GetPaymentOptions));
+
+        StorageBays = await ExecuteHttpService<IEnumerable<GetStorageBaysResponseModel>>(async x => await x.GetAsync(url => url.Storage.GetAvailableStorageBays));
+    }
+    
+    private async Task Validate()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.CustomerVehicle.UpdateCustomerContract, Model));
+
+            if (success)
+                ToastSuccess("Customer contract updated");
+        }
+        
+    }
+
+}

@@ -1,0 +1,65 @@
+﻿@using AdminPortal.Components.Pages.CustomerDashboardComponents.Dialogues
+@using global::Shared.Models.Customer
+@inherits BaseComponent
+
+<MudDataGrid @ref="dataGrid" T="GetCustomerContractGridResponse" Filterable="false" ServerData="ServerReload" Class="mt-2">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudTextField ValueChanged="@(s => OnSearch(s))" T="string" Placeholder="Search" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
+        </MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.StartDate" Title="Start Date" Format="dd/MM/yyyy" />
+        <PropertyColumn Property="x => x.EndDate" Title="End Date" Format="dd/MM/yyyy"/>
+        <PropertyColumn Property="x => x.PricePerMonth" Title="Price Per Month"/>
+        <PropertyColumn Property="x => x.IsChargerSupplied"/>
+        <PropertyColumn Property="x => x.PaymentMethod" Title="Payment Option"/>
+        <PropertyColumn Property="x => x.StorageBay" Title="Storage Bay"/>
+        <TemplateColumn CellClass="d-flex justify-end">
+            <CellTemplate>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Info" Size="Size.Large" OnClick="() => OpenUpsertCustomer(context.Item.Id)">Edit</MudButton>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="GetCustomerContractGridResponse"/>
+    </PagerContent>
+</MudDataGrid>
+
+
+@code {
+    [Parameter]
+    public IEnumerable<GetCustomerContractGridResponse> CustomerContracts { get; set; }
+    
+    MudDataGrid<GetCustomerContractGridResponse> dataGrid;
+    string searchString = "";
+
+    private async Task<GridData<GetCustomerContractGridResponse>> ServerReload(GridState<GetCustomerContractGridResponse> state)
+    {
+        var data = CustomerContracts;
+
+        return new GridData<GetCustomerContractGridResponse>
+        {
+            TotalItems = data.Count(),
+            Items = data.Where(x => x.PaymentMethod.Contains(searchString))
+        };
+    }
+
+    private Task OnSearch(string text)
+    {
+        searchString = text;
+        return dataGrid.ReloadServerData();
+    }
+
+    private Task OpenUpsertCustomer(int customerContractId)
+    {
+        var parameters = new DialogParameters<UpdateCustomerContractDialogue>
+        {
+            { x => x.CustomerContractId,customerContractId },
+        };
+        
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium, FullWidth = true, Position = DialogPosition.TopCenter, CloseButton = true, BackdropClick = false};
+        return DialogService.ShowAsync<UpdateCustomerContractDialogue>("Edit Contract", parameters,options);
+    }
+}

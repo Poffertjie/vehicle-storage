@@ -1,0 +1,39 @@
+﻿<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All">Home</MudNavLink>
+
+    <AuthorizeView Roles="@(nameof(RolesEnum.Admin))">
+        <Authorized>
+            <MudNavLink Href="customers" Match="NavLinkMatch.Prefix">Customers</MudNavLink>
+            <MudNavLink Href="users" Match="NavLinkMatch.Prefix">Users</MudNavLink>
+            <MudNavLink Href="service-advisors" Match="NavLinkMatch.Prefix">Service Advisors</MudNavLink>
+            <MudNavLink Href="account" Match="NavLinkMatch.Prefix">Account</MudNavLink>
+            <MudNavLink Href="storage-bays" Match="NavLinkMatch.Prefix">Storage Bays</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView Roles="@($"{nameof(RolesEnum.Admin)},{nameof(RolesEnum.Reportviewer)}")">
+        <Authorized>
+            <MudNavLink Href="reports" Match="NavLinkMatch.Prefix">Reports</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView Roles="@($"{nameof(RolesEnum.Admin)},{nameof(RolesEnum.Vehiclecheckin)}")">
+        <Authorized>
+            <MudNavLink Href="vehicle-checkin" Match="NavLinkMatch.Prefix">Vehicle Checkin</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView Roles="@($"{nameof(RolesEnum.Admin)},{nameof(RolesEnum.Vehiclecheckout)}")">
+        <Authorized>
+            <MudNavLink Href="vehicle-checkout" Match="NavLinkMatch.Prefix">Vehicle Checkout</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView Roles="@($"{nameof(RolesEnum.Admin)},{nameof(RolesEnum.Storagecheckin)}")">
+        <Authorized>
+            <MudNavLink Href="storage-checkin" Match="NavLinkMatch.Prefix">Storage Checkin</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView Roles="@($"{nameof(RolesEnum.Admin)},{nameof(RolesEnum.Dailychecks)}")">
+        <Authorized>
+            <MudNavLink Href="checks-dashboard" Match="NavLinkMatch.Prefix">Checks</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+</MudNavMenu>
+

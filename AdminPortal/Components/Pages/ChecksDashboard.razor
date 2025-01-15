@@ -1,0 +1,19 @@
+﻿@page "/checks-dashboard"
+@using AdminPortal.Components.Pages.ChecksDashboardComponents.Tabs
+@attribute [Authorize(Roles = nameof(RolesEnum.Admin) + "," + nameof(RolesEnum.Dailychecks))]
+
+<MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Info" Class="mt-2">
+    <MudTabPanel Icon="@Icons.Material.Rounded.CalendarViewDay" Text="Daily">
+        <DailyTab />
+    </MudTabPanel>
+    <MudTabPanel Icon="@Icons.Material.Rounded.CalendarViewWeek" Text="Weekly">
+        <WeeklyTab />
+    </MudTabPanel>
+</MudTabs>
+
+@code {
+    
+    
+    
+    
+}

@@ -1,0 +1,25 @@
+﻿CREATE TABLE [dbo].[CustomerStorageContract]
+(
+	[Id] INT NOT NULL IDENTITY(1,1),
+	[CompanyId] INT NOT NULL,
+    [CustomerVehicleId] INT NOT NULL,
+	[CustomerId] INT NOT NULL,
+	[StartDate] DATETIME NOT NULL,
+	[EndDate] DATETIME NOT NULL,
+	[Active] BIT NOT NULL,
+	[PricePerMonth] DECIMAL(18, 2) NOT NULL,
+	[PaymentOptionId] INT NOT NULL,
+	[StorageBayId] INT NOT NULL,
+	[IsChargerSupplied] BIT NOT NULL,
+	[MODIFIED_BY] UNIQUEIDENTIFIER NOT NULL,
+	[ValidFrom] datetime2 GENERATED ALWAYS AS ROW START,
+	[ValidTo] datetime2 GENERATED ALWAYS AS ROW END,
+	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo),
+	CONSTRAINT [PK_CustomerStorageContract_Id] PRIMARY KEY CLUSTERED ([Id] ASC), 
+    CONSTRAINT [FK_CustomerStorageContract_Company] FOREIGN KEY ([CompanyId]) REFERENCES [Company]([Id]), 
+	CONSTRAINT [FK_CustomerStorageContract_Customer] FOREIGN KEY ([CustomerId]) REFERENCES [Customer]([Id]), 
+	CONSTRAINT [FK_CustomerStorageContract_PaymentOptions] FOREIGN KEY ([PaymentOptionId]) REFERENCES [PaymentOption]([Id]),
+    CONSTRAINT [FK_CustomerStorageContract_StorageBay] FOREIGN KEY ([StorageBayId]) REFERENCES [StorageBay]([Id]),
+    CONSTRAINT [FK_CustomerStorageContract_CustomerVehicle] FOREIGN KEY ([CustomerVehicleId]) REFERENCES [CustomerVehicle]([Id]),
+)
+WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[CustomerStorageHistory]));

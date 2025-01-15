@@ -1,0 +1,50 @@
+﻿@using global::Shared.Models.CustomerVehicle
+@inherits BaseComponent
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" Spacing="5">
+            <MudCheckBox Label="Returned All Belongings" LabelPosition="LabelPosition.End"
+                         @bind-Value="Model.ReturnAllBelongings" Size="Size.Medium"
+                         Color="Color.Tertiary"></MudCheckBox>
+            <MudCheckBox Label="Returned Number Plates" LabelPosition="LabelPosition.End"
+                         @bind-Value="Model.ReturnNumberPlates" Size="Size.Medium" Color="Color.Tertiary"></MudCheckBox>
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-4 mt-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="Validate">Complete
+                    Checkout
+                </MudButton>
+            </MudStack>
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Error Code Image</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.ErrorCodeImage = x" Name="Error Code Image"/>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter] public int CustomerVehicleId { get; set; }
+    [Parameter] public int Id { get; set; }
+    private EndCustomerVehicleCheckOutRequestModel Model { get; set; } = new();
+    MudForm form;
+
+    protected override void OnInitialized()
+    {
+        Model.CustomerVehicleId = CustomerVehicleId;
+        Model.Id = Id;
+    }
+
+    private async Task Validate()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.CustomerVehicle.EndCustomerVehicleCheckOut, Model));
+
+            if (success)
+                ToastSuccess("Customer vehicle checkout finished.");
+        }
+    }
+
+}

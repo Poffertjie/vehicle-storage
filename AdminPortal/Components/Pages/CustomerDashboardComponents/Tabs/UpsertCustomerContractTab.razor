@@ -1,0 +1,69 @@
+﻿@using global::Shared.Models.Customer
+@using global::Shared.Models.Lookup
+@using global::Shared.Models.Storage
+<MudStack Row="false" Class="mt-2">
+    <MudText>Contract</MudText>
+    <MudPaper Class="pa-4">
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudStack Spacing="5">
+                    <MudDatePicker @bind-Date="Model.StartDate" Label="Start Date" For="@(() => Model.StartDate)"/>
+                    <MudNumericField @bind-Value="Model.PricePerMonth" T="decimal" Label="Price Per Month"
+                                     For="@(() => Model.PricePerMonth)"/>
+                    @if (PaymentOptions is not null)
+                    {
+                        <MudSelect T="int" Label="Payment Option" @bind-Value="Model.PaymentOptionId"
+                                   Placeholder="Please Select" AdornmentIcon="@Icons.Material.Filled.Money"
+                                   AdornmentColor="Color.Info" For="@(() => Model.PaymentOptionId)">
+                            @foreach (var option in PaymentOptions)
+                            {
+                                <MudSelectItem Value="@option.Id">@option.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+                </MudStack>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudStack Spacing="5">
+                    <MudDatePicker @bind-Date="Model.EndDate" Label="End Date" For="@(() => Model.EndDate)"/>
+
+                    @if (StorageBays is not null)
+                    {
+                        <MudSelect T="int" Label="Storage Bay" @bind-Value="Model.StorageBayId"
+                                   Placeholder="Please Select" AdornmentIcon="@Icons.Material.Filled.Garage"
+                                   AdornmentColor="Color.Info" For="@(() => Model.StorageBayId)">
+                            @foreach (var storage in StorageBays)
+                            {
+                                <MudSelectItem Value="@storage.Id">@storage.Number</MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+
+                    <MudText>Charge Supplied</MudText>
+                    <MudCheckBox LabelPosition="LabelPosition.End" @bind-Value="Model.IsChargerSupplied"
+                                 Size="Size.Medium" Color="Color.Tertiary"/>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudStack>
+
+@code {
+    [Parameter] public CreateCustomerContract Model { get; set; }
+    [Parameter] public IEnumerable<GetPaymentOptionsResponseModel>? PaymentOptions { get; set; }
+    [Parameter] public IEnumerable<GetStorageBaysResponseModel>? StorageBays { get; set; }
+
+    [Parameter] public int? StorageBayId { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        if (StorageBayId.HasValue)
+        {
+            Model.StorageBayId = StorageBayId.Value;
+            StateHasChanged();
+        }
+
+        return base.OnInitializedAsync();
+    }
+
+}

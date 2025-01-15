@@ -1,0 +1,71 @@
+﻿@using AdminPortal.Components.Pages.ChecksDashboardComponents.Dialogues
+@using global::Shared.Models.CustomerVehicle
+@inherits  BaseComponent
+
+<MudDataGrid @ref="dataGrid" T="GetVehicleDailyWeeklyChecksResponseModel" Filterable="false" ServerData="ServerReload" Class="mt-2">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Weekly Checks</MudText>
+        <MudSpacer/>
+        <MudTextField ValueChanged="@(s => OnSearch(s))" T="string" Placeholder="Search" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
+        </MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Date"/>
+        <PropertyColumn Property="x => x.StorageBay"/>
+        <PropertyColumn Property="x => x.Brand"/>
+        <PropertyColumn Property="x => x.Model"/>
+        <PropertyColumn Property="x => x.LicensePlate" Title="License Plate"/>
+        <PropertyColumn Property="x => x.ChassisVin" Title="Chassis / VIN"/>
+        <TemplateColumn CellClass="d-flex justify-end">
+            <CellTemplate>
+                <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Info" Size="Size.Large" OnClick="() => StartWeeklyCheck(context.Item.Id)">Start</MudButton>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="GetVehicleDailyWeeklyChecksResponseModel"/>
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    MudDataGrid<GetVehicleDailyWeeklyChecksResponseModel> dataGrid;
+    string searchString = "";
+
+    private IEnumerable<GetVehicleDailyWeeklyChecksResponseModel>? Data { get; set; }
+
+    private async Task<GridData<GetVehicleDailyWeeklyChecksResponseModel>> ServerReload(GridState<GetVehicleDailyWeeklyChecksResponseModel> state)
+    {
+        Data ??= await ExecuteHttpService<IEnumerable<GetVehicleDailyWeeklyChecksResponseModel>>(async x =>
+            await x.GetAsync(url => url.CustomerVehicle.GetWeeklyChecks));
+
+        if (Data is not null)
+        {
+            var pagedData = Data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+            return new GridData<GetVehicleDailyWeeklyChecksResponseModel> {
+                TotalItems = Data.Count(),
+                Items = pagedData
+            };
+        }
+
+        return new GridData<GetVehicleDailyWeeklyChecksResponseModel>();
+    }
+
+    private Task OnSearch(string text)
+    {
+        searchString = text;
+        return dataGrid.ReloadServerData();
+    }
+    
+    private Task StartWeeklyCheck(int id)
+    {
+        var parameters = new DialogParameters<WeeklyDialogue>
+        {
+            { x => x.Id,id },
+        };
+
+        
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraLarge, FullWidth = true, Position = DialogPosition.TopCenter, CloseButton = true, BackdropClick = false};
+        return DialogService.ShowAsync<WeeklyDialogue>("", parameters, options);
+    }
+}

@@ -1,0 +1,87 @@
+@using AdminPortal.Models
+@using global::Shared.Models.Auth
+@inherits BaseComponent
+
+<MudForm @ref="form" Spacing="5">
+    <MudStack Row="false" Justify="Justify.Center" Class="ml-3 mr-3">
+        <MudStack Row="true" Justify="Justify.SpaceEvenly" Spacing="10">
+            <MudTextField Label="Full Name"
+                          @bind-Value="Model.FullName" For="@(() => Model.FullName)"/>
+            <MudTextField Label="Email"
+                          @bind-Value="Model.Email" For="@(() => Model.Email)"/>
+        </MudStack>
+        <MudStack Row="true" Justify="Justify.SpaceEvenly" Spacing="10">
+            <MudTextField Label="Password" HelperText="Choose a strong password" Class="mt-3"
+                          @bind-Value="Model.Password" For="@(() => Model.Password)" InputType="InputType.Password"/>
+            <MudTextField Label="Password" HelperText="Repeat the password" Class="mt-3"
+                          @bind-Value="Model.ConfirmPassword" For="@(() => Model.ConfirmPassword)" InputType="InputType.Password"/>
+        </MudStack>
+    </MudStack>
+    <MudStack Row="true">
+        <MudDropContainer T="DropItem" Items="Items" ItemsSelector="@((item, dropzone) => item.Identifier == dropzone)" ItemDropped="ItemUpdated" Class="d-flex flex-wrap flex-grow-1">
+            <ChildContent>
+                <MudDropZone T="DropItem" Identifier="@nameof(GetUsersAndRolesResponseModel.Unassigned)" Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
+                    <MudText Typo="Typo.h6" Class="mb-4">Unassigned</MudText>
+                </MudDropZone>
+                <MudDropZone T="DropItem" Identifier="@nameof(GetUsersAndRolesResponseModel.Assigned)" Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
+                    <MudText Typo="Typo.h6" Class="mb-4">Assigned</MudText>
+                </MudDropZone>
+            </ChildContent>
+            <ItemRenderer Context="DialogueContext">
+                <MudPaper Elevation="25" Class="pa-4 my-4">@DialogueContext.Name</MudPaper>
+            </ItemRenderer>
+        </MudDropContainer>
+    </MudStack>
+    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mr-2 mb-2">
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Warning" Size="Size.Large" OnClick="Cancel">Cancel</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Info" Size="Size.Large" Class="ml-2" OnClick="Submit">Save</MudButton>
+    </MudStack>
+</MudForm>
+
+@code {
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; }
+
+    private List<DropItem> Items { get; set; } = new();
+    private CreateUserRequestModel Model { get; set; } = new();
+    MudForm form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var roles = await ExecuteHttpService<IEnumerable<string>>(async x => await x.GetAsync(url => url.Authentication.GetRoles));
+        
+        Items.AddRange(roles.Select(x => new DropItem()
+        {
+            Identifier = nameof(GetUsersAndRolesResponseModel.Unassigned),
+            Name = x
+        }));
+        
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.Authentication.CreateUser, Model));
+
+            if (success)
+            {
+                ToastSuccess("User created");
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+        }
+
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+
+    private void ItemUpdated(MudItemDropInfo<DropItem> dropItem)
+    {
+        dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
+    }
+
+
+
+}

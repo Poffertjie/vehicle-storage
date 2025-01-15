@@ -1,0 +1,25 @@
+﻿@page "/"
+@using AdminPortal.Components.Pages.ChecksDashboardComponents.Tabs
+<PageTitle>Dashboard</PageTitle>
+
+<MudGrid Class="mt-8">
+    <MudItem xs="12" sm="12" md="6">
+        <StorageBaysDashboard />
+    </MudItem>
+    <MudItem xs="12" sm="12" md="6">
+        <VehicleCheckinDashboard/>
+    </MudItem>
+    <MudItem xs="12" sm="12" md="6">
+        <StorageCheckinDashboard/>
+    </MudItem>
+    <MudItem xs="12" sm="12" md="6">
+        <VehicleCheckoutDashboard/>
+    </MudItem>
+    <MudItem xs="12" sm="12" md="6">
+        <DailyTab/>
+    </MudItem>
+    <MudItem xs="12" sm="12" md="6">
+        <WeeklyTab/>
+    </MudItem>
+</MudGrid>
+

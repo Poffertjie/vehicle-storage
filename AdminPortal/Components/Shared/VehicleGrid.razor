@@ -1,0 +1,100 @@
+﻿@using Newtonsoft.Json
+@inject ISnackbar Snackbar
+
+<MudStack Row="true" Justify="Justify.Center" Class="mb-2 mt-2">
+    <MudText Align="Align.Center">S - Scratch | B - Bent | R - Broken | P - Chipped | C - Cracked | D - Dented | H - Holed | M - Missing | T - Torn </MudText>
+    <MudButton  Size="Size.Small" Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="Save">Save</MudButton>
+</MudStack>
+<MudStack Row="true" Justify="Justify.Center">
+    @if (_isLoading)
+    {
+        <!-- Show loader while data is loading -->
+        <MudProgressCircular Size="Size.Medium" Color="Color.Info" Indeterminate="true"/>
+    }
+    else
+    {
+        <!-- Once data is loaded, display the table -->
+        <div class="table-container">
+            <table class="grid-table">
+                <tbody>
+                @foreach (var rowGroup in Grid.GroupBy(m => m.Row))
+                {
+                    <tr>
+                        @foreach (var item in rowGroup)
+                        {
+                            <td style="padding: 0;">
+                                <select class="custom-select" style="background-color: transparent;" @onchange="(e) => UpdateValue(item, e.Value.ToString())">
+                                    <option value=""></option>
+                                    @foreach (var option in _options)
+                                    {
+                                        <option value="@option" selected="@(option == item.Value)">@option</option>
+                                    }
+                                </select>
+                            </td>
+                        }
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</MudStack>
+
+@code {
+    [Parameter] public EventCallback<string> SaveData { get; set; }
+
+    private List<ColumnsAndRows> Grid { get; set; } = new();
+    private List<string> _options = new List<string> { "S", "B", "R", "P", "C", "D", "H", "M", "T" };
+    private bool _isLoading = true; // Initially set to true to show the loader
+
+    // Update the value of an item when the user selects an option
+    private void UpdateValue(ColumnsAndRows item, string value)
+    {
+        item.Value = value;
+    }
+
+    // Initialize the data asynchronously
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync(); // Load data asynchronously
+    }
+
+    // Asynchronously load data to prevent blocking the UI thread
+    private async Task LoadDataAsync()
+    {
+        // Use Task.Run to load the data in a background thread to avoid UI blocking
+        await Task.Run(() =>
+        {
+            for (int row = 1; row <= 50; row++)
+            {
+                for (int col = 1; col <= 100; col++)
+                {
+                    Grid.Add(new ColumnsAndRows
+                    {
+                        Row = row,
+                        Column = col,
+                        Value = "" // Initialize with blank value
+                    });
+                }
+            }
+        });
+
+        // Hide the loader and show the table content
+        _isLoading = false;
+    }
+
+    private async Task Save()
+    {
+        await SaveData.InvokeAsync(JsonConvert.SerializeObject(Grid));
+        Snackbar.Add("Saved", Severity.Success);
+    }
+
+    // Model for representing rows and columns
+    public class ColumnsAndRows
+    {
+        public int Row { get; set; }
+        public int Column { get; set; }
+        public string Value { get; set; }
+    }
+
+}

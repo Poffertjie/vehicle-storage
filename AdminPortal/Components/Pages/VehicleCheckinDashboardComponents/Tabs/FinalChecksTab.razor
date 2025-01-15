@@ -1,0 +1,25 @@
+﻿@using global::Shared.Models.CustomerVehicle
+<MudStack Row="true" Class="mt-2" AlignItems="AlignItems.Center" Justify="Justify.Center">
+    <MudForm Spacing="5">
+        <MudStack Row="true" Class="mt-2" AlignItems="AlignItems.Center" Justify="Justify.SpaceEvenly">
+            <MudTextField T="string" Label="Tyre Make" @bind-Value="Model.TyreMake"/>
+            <MudNumericField T="int" Label="Tyre Year Model"  @bind-Value="Model.TyreYearModel"/>
+            <MudNumericField T="decimal" Label="Tyre Thread Measuring"  @bind-Value="Model.TyreTreadMeasure"/>
+        </MudStack>
+        <MudStack Row="true" Class="mt-2" AlignItems="AlignItems.Center" Justify="Justify.SpaceEvenly">
+            <div>
+                <MudText>Deep Wash</MudText>
+                <MudCheckBox LabelPosition="LabelPosition.End" @bind-Value="Model.DeepWash" Size="Size.Medium" Color="Color.Tertiary" />
+            </div>
+            <div>
+                <MudText>Diagnostic Report</MudText>
+                <FileUpload Name="File" GetMediaUrl="(x) => Model.DiagnosticReportFile = x" />
+            </div>
+        </MudStack>
+    </MudForm>
+</MudStack>
+
+@code {
+    [Parameter]
+    public CustomerVehicleCheckInRequestModel Model { get; set; }
+}

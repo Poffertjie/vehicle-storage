@@ -1,0 +1,4 @@
+@page "/reports"
+@attribute [Authorize(Roles = nameof(RolesEnum.Admin) + "," + nameof(RolesEnum.Reportviewer))]
+
+<PageTitle>Reports</PageTitle>

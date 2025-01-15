@@ -1,0 +1,89 @@
+@using global::Shared.Models.Storage
+@inherits BaseComponent
+
+@if (Model is not null)
+{
+    <MudForm @ref="form" Spacing="5">
+        <MudStack Row="false" Class="mt-2">
+            <MudPaper Class="pa-4">
+                <MudGrid>
+                    <MudItem xs="12" sm="12">
+                        <MudStack Spacing="5">
+                            <MudTextField Label="Name"
+                                          @bind-Value="Model.Number" For="@(() => Model.Number)"/>
+                            <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-4 mt-4">
+                                <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="Validate">Save</MudButton>
+                            </MudStack>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+        </MudStack>
+
+    </MudForm>
+}
+
+
+@code {
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; }
+    [Parameter] public UpdateStorageBayRequestModel? Model { get; set; }
+    private int ExistingNumber { get; set; } = 0;
+
+    MudForm form;
+
+    protected override void OnInitialized()
+    {
+        Model ??= new();
+        ExistingNumber = Model.Number;
+    }
+
+    private async Task Validate()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            if (Model.Id <= 0)
+            {
+                if (await DoesExist()) return;
+
+                var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.Storage.CreateStorageBay, Model));
+
+                if (success)
+                {
+                    ToastSuccess("Storage bay created");
+                    MudDialog.Close(DialogResult.Ok(true));
+                }
+            }
+            else
+            {
+                if (ExistingNumber != Model.Number)
+                {
+                    if (await DoesExist())
+                        return;
+                }
+
+                var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.Storage.UpdateStorageBay, Model));
+
+                if (success)
+                {
+                    ToastSuccess("storage bay updated");
+                    MudDialog.Close(DialogResult.Ok(true));
+                }
+            }
+        }
+    }
+
+    private async Task<bool> DoesExist()
+    {
+        var alreadyExist = await ExecuteHttpService<bool>(async x => await x.GetAsync(url => url.Storage.StorageBayNumberExist(Model.Number)));
+        if (alreadyExist)
+        {
+            ToastWarning("Storage bay number already exist");
+            return true;
+        }
+
+        return false;
+    }
+
+}

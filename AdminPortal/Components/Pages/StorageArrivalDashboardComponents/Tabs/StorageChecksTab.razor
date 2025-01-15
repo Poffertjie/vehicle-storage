@@ -1,0 +1,40 @@
+﻿@using global::Shared.Models.CustomerVehicle
+<MudStack Row="true" Class="mt-2" AlignItems="AlignItems.Center" Justify="Justify.Center">
+    <MudGrid>
+        <MudItem xs="6" sm="6" md="4">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Vehicle On Charge Image</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.VehicleOnChargeImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="4">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Kilometer Reading Image</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.KilometerReadingImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+        <MudItem xs="6" sm="6" md="4">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
+                <MudText Align="Align.Center">Vehicle Under Cover Image</MudText>
+                <FileUpload IsImage="true" GetMediaUrl="(x) => Model.VehicleUnderCoverImage = x" Name="Image" />
+            </MudStack>
+        </MudItem>
+    </MudGrid>
+</MudStack>
+
+<MudStack Row="true" Class="mt-2" AlignItems="AlignItems.Center" Justify="Justify.Center">
+    <MudCheckBox @bind-Value="Model.ParkedTheVehicleOnTireCradles" Size="Size.Large" Color="Color.Tertiary" Label="Parked The Vehicle On Tire Cradles"/>
+    <MudCheckBox @bind-Value="Model.ChargerConnected" Size="Size.Large" Color="Color.Tertiary" Label="Charger Connected"/>
+    <MudCheckBox @bind-Value="Model.SeatCover" Size="Size.Large" Color="Color.Tertiary" Label="Seat Cover"/>
+    <MudCheckBox @bind-Value="Model.SteeringCover" Size="Size.Large" Color="Color.Tertiary" Label="Steering Cover"/>
+</MudStack>
+<MudStack Row="true" Class="mt-2" AlignItems="AlignItems.Center" Justify="Justify.Center">
+    <MudCheckBox @bind-Value="Model.FloorMats" Size="Size.Large" Color="Color.Tertiary" Label="Floor Mats"/>
+    <MudCheckBox @bind-Value="Model.KeyTagged" Size="Size.Large" Color="Color.Tertiary" Label="Key Tagged"/>
+    <MudCheckBox @bind-Value="Model.KeyPlacedInSafe" Size="Size.Large" Color="Color.Tertiary" Label="Key Placed In Safe"/>
+</MudStack>
+
+
+@code {
+    [Parameter] public CustomerVehicleStorageCheckInRequestModel Model { get; set; }
+}

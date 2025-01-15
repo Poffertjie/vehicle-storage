@@ -1,0 +1,18 @@
+﻿CREATE TABLE [dbo].[Customer]
+(
+	[Id] INT NOT NULL IDENTITY(1,1),
+	[CompanyId] INT NOT NULL,
+	[UserId] UNIQUEIDENTIFIER NOT NULL,
+	[IdentificationNumber] NVARCHAR(30) NOT NULL,
+	[Address] NVARCHAR(MAX) NOT NULL,
+	[ContactNumber] NVARCHAR(50) NOT NULL,
+	[IdentificationFile] NVARCHAR(MAX) NOT NULL,
+	[MODIFIED_BY] UNIQUEIDENTIFIER NOT NULL,
+	[ValidFrom] datetime2 GENERATED ALWAYS AS ROW START,
+	[ValidTo] datetime2 GENERATED ALWAYS AS ROW END,
+	PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo),
+	CONSTRAINT [PK_Customer_Id] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [FK_Customer_Company] FOREIGN KEY ([CompanyId]) REFERENCES [Company]([Id]), 
+
+)
+WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[CustomerHistory]));

@@ -1,0 +1,54 @@
+﻿@using AdminPortal.Components.Pages.VehicleCheckinDashboardComponents.Tabs
+@using global::Shared.Models.CustomerVehicle
+@inherits BaseComponent
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" Spacing="5">
+            <MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Info">
+                <MudTabPanel Icon="@Icons.Material.Rounded.PhotoCamera" Text="Prewash Inspection">
+                    <PrewashInspectionTab Model="Model" />
+                </MudTabPanel>
+                <MudTabPanel Icon="@Icons.Material.Rounded.CarRepair" Text="Detailing">
+                    <DetailsTab GetDetails="(x) => Model.Detailing = x"/>
+                </MudTabPanel>
+                <MudTabPanel Icon="@Icons.Material.Rounded.Assignment" Text="Final Checks" >
+                    <FinalChecksTab Model="Model"/>
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-4 mt-4">
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="Validate">Check In</MudButton>
+                    </MudStack>
+                </MudTabPanel>
+            </MudTabs>
+        </MudForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter]
+    public int CustomerVehicleId { get; set; }
+    [Parameter]
+    public int CustomerStorageContractId { get; set; }
+    
+    private CustomerVehicleCheckInRequestModel Model { get; set; } = new();
+    MudForm form;
+
+    protected override void OnInitialized()
+    {
+        Model.CustomerVehicleId = CustomerVehicleId;
+        Model.CustomerStorageContractId = CustomerStorageContractId;
+    }
+
+    private async Task Validate()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.CustomerVehicle.CustomerVehicleCheckIn, Model));
+
+            if (success)
+                ToastSuccess("Vehicle checked in.");
+        }
+        
+    }
+}

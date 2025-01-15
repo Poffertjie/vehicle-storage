@@ -1,0 +1,76 @@
+﻿@page "/account"
+@using global::Shared.Models.Company
+@inherits BaseComponent
+@attribute [Authorize(Roles = nameof(RolesEnum.Admin))]
+
+<PageTitle>Account</PageTitle>
+<MudText Typo="Typo.h5">Account</MudText>
+<MudPaper Class="pa-4">
+    <MudForm Spacing="5">
+        @if (Model is not null)
+        {
+            <MudForm @ref="form" Spacing="5">
+                <MudTextField ReadOnly="_readOnly" Label="Full Name"
+                              @bind-Value="Model.CompanyName" For="@(() => Model.CompanyName)"/>
+                <MudTextField ReadOnly="_readOnly" Label="Contact Number"
+                              @bind-Value="Model.PhoneNumber" For="@(() => Model.PhoneNumber)"/>
+                <MudTextField ReadOnly="_readOnly" Label="Full Name"
+                              @bind-Value="Model.Address" For="@(() => Model.Address)"/>
+                
+                @if (_readOnly)
+                {
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mr-2 mb-2">
+                        <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Info" Size="Size.Large" Class="ml-2" OnClick="Edit">Edit</MudButton>
+                    </MudStack>
+                }
+                else
+                {
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mr-2 mb-2">
+                        <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Warning" Size="Size.Large" OnClick="Edit">Cancel</MudButton>
+                        <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Info" Size="Size.Large" Class="ml-2" OnClick="Submit">Save</MudButton>
+                    </MudStack>
+                }
+            </MudForm>
+        }
+
+    </MudForm>
+</MudPaper>
+
+
+@code {
+    private GetCompanyResponseModel? Model { get; set; }
+    private bool _readOnly = true;
+    MudForm form;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Model = await ExecuteHttpService<GetCompanyResponseModel>(async x => await x.GetAsync(url => url.Company.GetCompany));
+
+            StateHasChanged();
+        }
+    }
+
+    private void Edit()
+    {
+        _readOnly = !_readOnly;
+    }
+    
+    private async Task Submit()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.Company.UpdateCompany, Model));
+
+            if (success)
+            {
+                Edit();
+                ToastSuccess("Company updated");
+            }
+        }
+
+    }
+
+}

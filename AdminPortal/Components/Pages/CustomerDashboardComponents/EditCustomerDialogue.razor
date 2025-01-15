@@ -1,0 +1,68 @@
+﻿@using AdminPortal.Components.Pages.CustomerDashboardComponents.Tabs
+@using global::Shared.Models.Customer
+@inherits BaseComponent
+
+<MudDialog>
+    <DialogContent>
+        <MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Info">
+            @if (Model is not null)
+            {
+                <MudTabPanel Icon="@Icons.Material.Rounded.Person" Text="Customer">
+                    <MudForm @ref="form" Spacing="5">
+                        <UpsertCustomerTab ReadOnly="ReadOnly" Model="Model.UpdateCustomerDetails.Customer" AdditionalContactPersons="Model.UpdateCustomerDetails.AdditionalContactPersons" T="UpdateAdditionalContactPerson"/>
+                        <MudStack Row="true" Justify="Justify.FlexEnd" Class="pa-4 mt-4">
+                            @if (ReadOnly)
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="EnableEditCustomer">Edit</MudButton>
+                            }
+                            else
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Warning" DropShadow="false" OnClick="EnableEditCustomer">Cancel</MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Info" DropShadow="false" OnClick="Validate">Save</MudButton>
+                            }
+                        </MudStack>
+                    </MudForm>
+                </MudTabPanel>
+                <MudTabPanel Icon="@Icons.Material.Rounded.DirectionsCar" Text="Vehicles">
+                    <CustomerVehicleGridTab CustomerVehicles="Model.CustomerVehicles" CustomerId="CustomerId"/>
+                </MudTabPanel>
+                @* <MudTabPanel Icon="@Icons.Material.Rounded.Assignment" Text="Contract"> *@
+                @*     <CustomerContractGridTab CustomerContracts="Model.CustomerContracts"/> *@
+                @* </MudTabPanel> *@
+            }
+        </MudTabs>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter] public int CustomerId { get; set; }
+
+    private GetCustomerResponseModel? Model { get; set; }
+    private bool ReadOnly { get; set; } = true;
+    MudForm form;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Model = await ExecuteHttpService<GetCustomerResponseModel>(async x => await x.GetAsync(url => url.Customer.GetCustomer(CustomerId)));
+    }
+
+    private void EnableEditCustomer()
+    {
+        ReadOnly = !ReadOnly;
+        StateHasChanged();
+    }
+
+    private async Task Validate()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var success = await ExecuteHttpService<bool>(async x => await x.PostAsync(url => url.Customer.UpdateCustomerDetails, Model.UpdateCustomerDetails));
+
+            if (success)
+                ToastSuccess("Customer details updated");
+        }
+        
+    }
+}
